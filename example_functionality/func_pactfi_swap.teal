@@ -1,0 +1,150 @@
+// We can hopefully create some sort of signature with a predefined start and
+// end of the program that all functions should conform to. Making sure we can
+// always deploy, invoke, and delete functionality.
+#pragma version 7
+
+// Deploy
+txn ApplicationID
+bz deploy
+
+// Only allower the creator to call
+txn Sender
+global CreatorAddress
+==
+assert
+
+method "invoke()bool"
+txna ApplicationArgs 0
+==
+bnz invoke
+
+method "deactivate()bool"
+txna ApplicationArgs 0
+==
+bnz deactivate
+
+err
+
+// Invoke
+// Make a swap on PactFi
+// Apps: Pool Application ID
+// Assets: Asset 1 ID
+// Assets: Asset 2 ID
+// Args: Amount In
+// Args: Min Amount Out
+invoke:
+	// Must contain an application ID
+	txn ApplicationID
+	assert
+
+	// Must be NoOp call
+	txn OnCompletion
+	int NoOp
+	==
+	assert
+
+        // PactFi Swap Group Transaction
+        // [ * | asset_in | appl | * ]
+        itxn_begin
+        // Asset In Transaction
+
+        txn Sender
+        itxn_field Sender
+
+        int axfer
+        itxn_field TypeEnum
+
+        txna Assets 0
+        itxn_field XferAsset
+
+        txna ApplicationArgs 1
+        btoi
+        itxn_field AssetAmount
+
+        txna Applications 1
+        app_params_get AppAddress
+        assert
+        itxn_field AssetReceiver
+
+        int 0
+        itxn_field Fee
+
+        itxn_next
+        // Application Call
+
+        txn Sender
+        itxn_field Sender
+
+        int appl
+        itxn_field TypeEnum
+
+        txna Applications 1
+        itxn_field ApplicationID
+
+        txna Assets 0
+        itxn_field Assets
+
+        txna Assets 1
+        itxn_field Assets
+
+        byte "SWAP"
+        itxn_field ApplicationArgs
+
+        txna ApplicationArgs 2
+        itxn_field ApplicationArgs
+
+        int 0
+        itxn_field Fee
+
+        itxn_submit
+
+	// // Rekey back
+	itxn_begin
+
+	int pay
+	itxn_field TypeEnum
+
+	txn Sender
+	itxn_field Sender
+
+	txn Sender
+	itxn_field Receiver
+
+	txn Sender
+	itxn_field RekeyTo
+
+	itxn_submit
+
+	int 1
+	callsub log_bool
+
+	// Success
+	int 1
+	return
+
+deactivate:
+	// Log True
+	int 1
+	callsub log_bool
+
+	int 1
+	return
+
+deploy:
+	// Log True
+	int 1
+	callsub log_bool
+
+	int 1
+	return
+
+log_bool:
+	byte 0x151f7c75
+	byte 0x00
+	int 0
+	uncover 3
+	setbit
+	concat
+	log
+	retsub
+

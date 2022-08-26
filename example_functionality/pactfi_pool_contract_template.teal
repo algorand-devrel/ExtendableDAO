@@ -1,0 +1,1145 @@
+#pragma version 5
+
+txn RekeyTo
+global ZeroAddress
+==
+txna Assets 0
+int {ASSET_1}
+==
+&&
+txna Assets 1
+int {ASSET_2}
+==
+&&
+txn NumAssets
+int 3
+<=
+&&
+txn NumAssets
+int 3
+==
+bnz label1
+
+int 1
+label47:
+&&
+txn OnCompletion
+int 0
+==
+&&
+!
+bnz label2
+
+txn ApplicationID
+int 0
+==
+bnz label3
+
+txna ApplicationArgs 0
+byte "OPTIN"
+==
+bnz label4
+
+txna ApplicationArgs 0
+byte "CLT"
+==
+bnz label5
+
+txna ApplicationArgs 0
+byte "SWAP"
+==
+bnz label6
+
+txna ApplicationArgs 0
+byte "ADDLIQ"
+==
+bnz label7
+
+txna ApplicationArgs 0
+byte "REMLIQ"
+==
+bnz label8
+
+err
+
+label8:
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int 4
+==
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+byte "LTID"
+app_global_get
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+&&
+assert
+
+byte "L"
+app_global_get
+int 0
+!=
+assert
+
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+byte "A"
+app_global_get
+mulw
+int 0
+byte "L"
+app_global_get
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 19
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+byte "B"
+app_global_get
+mulw
+int 0
+byte "L"
+app_global_get
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 20
+byte "A"
+byte "A"
+app_global_get
+load 19
+-
+app_global_put
+
+byte "B"
+byte "B"
+app_global_get
+load 20
+-
+app_global_put
+
+byte "L"
+byte "L"
+app_global_get
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+-
+app_global_put
+
+load 20
+txna ApplicationArgs 2
+btoi
+-
+pop
+load 19
+txna ApplicationArgs 1
+btoi
+-
+pop
+int {ASSET_1}
+load 19
+callsub label9
+int {ASSET_2}
+load 20
+callsub label9
+int 1
+return
+
+label7:
+byte "LTID"
+app_global_get
+assert
+
+int {ASSET_1}
+!
+bnz label10
+
+txn GroupIndex
+int 2
+-
+gtxns TypeEnum
+int 4
+==
+txn GroupIndex
+int 2
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 2
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 2
+-
+gtxns XferAsset
+int {ASSET_1}
+==
+&&
+txn GroupIndex
+int 2
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+&&
+label29:
+assert
+
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int 4
+==
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+int {ASSET_2}
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+&&
+assert
+
+byte "L"
+app_global_get
+int 0
+==
+bnz label11
+
+int {ASSET_1}
+!
+bnz label12
+
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+label24:
+byte "L"
+app_global_get
+mulw
+int 0
+byte "A"
+app_global_get
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 12
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+byte "L"
+app_global_get
+mulw
+int 0
+byte "B"
+app_global_get
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 13
+load 12
+load 13
+dup2
+>
+select
+txna ApplicationArgs 1
+btoi
+-
+pop
+load 12
+load 13
+dup2
+>
+select
+int 0
+>
+assert
+
+byte "LTID"
+app_global_get
+load 12
+load 13
+dup2
+>
+select
+callsub label9
+byte "L"
+byte "L"
+app_global_get
+load 12
+load 13
+dup2
+>
+select
++
+app_global_put
+
+load 12
+load 13
+>
+bnz label13
+
+load 12
+load 13
+<
+bnz label14
+
+byte "A"
+byte "A"
+app_global_get
+int {ASSET_1}
+!
+bnz label15
+
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+label16:
++
+app_global_put
+
+byte "B"
+byte "B"
+app_global_get
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
++
+app_global_put
+
+label19:
+int 1
+return
+
+label15:
+txn GroupIndex
+int 2
+-
+gtxns Amount
+b label16
+
+label14:
+byte "B"
+app_global_get
+store 16
+byte "B"
+byte "B"
+app_global_get
+int {ASSET_1}
+!
+bnz label17
+
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+label21:
+byte "B"
+app_global_get
+mulw
+int 0
+byte "A"
+app_global_get
+divmodw
+||
++
+swap
+!
+assert
+
++
+app_global_put
+
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+byte "B"
+app_global_get
+load 16
+-
+-
+store 18
+int {ASSET_2}
+load 18
+callsub label9
+byte "A"
+byte "A"
+app_global_get
+int {ASSET_1}
+!
+bnz label18
+
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+label20:
++
+app_global_put
+
+b label19
+
+label18:
+txn GroupIndex
+int 2
+-
+gtxns Amount
+b label20
+
+label17:
+txn GroupIndex
+int 2
+-
+gtxns Amount
+b label21
+
+label13:
+byte "A"
+app_global_get
+store 15
+byte "A"
+byte "A"
+app_global_get
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+byte "A"
+app_global_get
+mulw
+int 0
+byte "B"
+app_global_get
+divmodw
+||
++
+swap
+!
+assert
+
++
+app_global_put
+
+int {ASSET_1}
+!
+bnz label22
+
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+label23:
+byte "A"
+app_global_get
+load 15
+-
+-
+store 17
+int {ASSET_1}
+load 17
+callsub label9
+byte "B"
+byte "B"
+app_global_get
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
++
+app_global_put
+
+b label19
+
+label22:
+txn GroupIndex
+int 2
+-
+gtxns Amount
+b label23
+
+label12:
+txn GroupIndex
+int 2
+-
+gtxns Amount
+b label24
+
+label11:
+int {ASSET_1}
+!
+bnz label25
+
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+label28:
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+*
+sqrt
+store 14
+byte "L"
+load 14
+app_global_put
+
+byte "A"
+int {ASSET_1}
+!
+bnz label26
+
+txn GroupIndex
+int 2
+-
+gtxns AssetAmount
+label27:
+app_global_put
+
+byte "B"
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+app_global_put
+
+load 14
+int 1000
+-
+store 14
+load 14
+txna ApplicationArgs 1
+btoi
+>=
+assert
+
+byte "LTID"
+app_global_get
+load 14
+callsub label9
+b label19
+
+label26:
+txn GroupIndex
+int 2
+-
+gtxns Amount
+b label27
+
+label25:
+txn GroupIndex
+int 2
+-
+gtxns Amount
+b label28
+
+label10:
+txn GroupIndex
+int 2
+-
+gtxns TypeEnum
+int 1
+==
+txn GroupIndex
+int 2
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 2
+-
+gtxns CloseRemainderTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 2
+-
+gtxns Receiver
+global CurrentApplicationAddress
+==
+&&
+b label29
+
+label6:
+int {ASSET_1}
+!
+bnz label30
+
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int 4
+==
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+int {ASSET_1}
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+&&
+label39:
+bnz label31
+
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int 4
+==
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetCloseTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns XferAsset
+int {ASSET_2}
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+&&
+bnz label32
+
+int 0
+return
+
+int 1
+return
+
+label32:
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+byte "A"
+app_global_get
+mulw
+int 0
+byte "B"
+app_global_get
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
++
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 10
+load 10
+int 10000
+int 1
+-
+mulw
+int 0
+int 10000
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 11
+load 11
+txna ApplicationArgs 1
+btoi
+-
+pop
+byte "A"
+byte "A"
+app_global_get
+load 11
+-
+app_global_put
+
+byte "B"
+byte "B"
+app_global_get
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
++
+app_global_put
+
+int {ASSET_1}
+load 11
+callsub label9
+int 1
+return
+
+label31:
+int {ASSET_1}
+!
+bnz label33
+
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+label38:
+byte "B"
+app_global_get
+mulw
+int 0
+byte "A"
+app_global_get
+int {ASSET_1}
+!
+bnz label34
+
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+label37:
++
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 9
+load 9
+int 10000
+int 1
+-
+mulw
+int 0
+int 10000
+divmodw
+pop
+pop
+swap
+!
+assert
+
+store 8
+load 8
+txna ApplicationArgs 1
+btoi
+-
+pop
+byte "B"
+byte "B"
+app_global_get
+load 8
+-
+app_global_put
+
+byte "A"
+byte "A"
+app_global_get
+int {ASSET_1}
+!
+bnz label35
+
+txn GroupIndex
+int 1
+-
+gtxns AssetAmount
+label36:
++
+app_global_put
+
+int {ASSET_2}
+load 8
+callsub label9
+int 1
+return
+
+label35:
+txn GroupIndex
+int 1
+-
+gtxns Amount
+b label36
+
+label34:
+txn GroupIndex
+int 1
+-
+gtxns Amount
+b label37
+
+label33:
+txn GroupIndex
+int 1
+-
+gtxns Amount
+b label38
+
+label30:
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int 1
+==
+txn GroupIndex
+int 1
+-
+gtxns RekeyTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns CloseRemainderTo
+global ZeroAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns Receiver
+global CurrentApplicationAddress
+==
+&&
+b label39
+
+label5:
+txn Sender
+global CreatorAddress
+==
+assert
+
+byte "LTID"
+app_global_get
+int 0
+==
+assert
+
+int {ASSET_1}
+!
+bnz label40
+
+int {ASSET_1}
+asset_params_get AssetUnitName
+store 4
+store 5
+load 5
+byte ""
+==
+bnz label41
+
+load 5
+store 2
+label44:
+int {ASSET_2}
+asset_params_get AssetUnitName
+store 6
+store 7
+load 7
+byte ""
+==
+bnz label42
+
+load 7
+store 3
+label43:
+itxn_begin
+int 0
+itxn_field Fee
+int 3
+itxn_field TypeEnum
+int 18446744073709551615
+itxn_field ConfigAssetTotal
+int 6
+itxn_field ConfigAssetDecimals
+load 2
+byte "/"
+concat
+load 3
+concat
+byte " PACT LP Token"
+concat
+itxn_field ConfigAssetName
+byte "PLP"
+itxn_field ConfigAssetUnitName
+byte "https://pact.fi/"
+itxn_field ConfigAssetURL
+global CurrentApplicationAddress
+itxn_field ConfigAssetReserve
+itxn_submit
+byte "LTID"
+itxn CreatedAssetID
+app_global_put
+
+int 1
+return
+
+label42:
+byte "?"
+store 3
+b label43
+
+label41:
+byte "?"
+store 2
+b label44
+
+label40:
+byte "ALGO"
+store 2
+b label44
+
+label4:
+txn Sender
+global CreatorAddress
+==
+assert
+
+int {ASSET_1}
+!
+!
+bnz label45
+
+label46:
+itxn_begin
+int 4
+itxn_field TypeEnum
+global CurrentApplicationAddress
+itxn_field AssetReceiver
+int 0
+itxn_field AssetAmount
+int {ASSET_2}
+itxn_field XferAsset
+int 0
+itxn_field Fee
+itxn_submit
+int 1
+return
+
+label45:
+itxn_begin
+int 4
+itxn_field TypeEnum
+global CurrentApplicationAddress
+itxn_field AssetReceiver
+int 0
+itxn_field AssetAmount
+int {ASSET_1}
+itxn_field XferAsset
+int 0
+itxn_field Fee
+itxn_submit
+b label46
+
+label3:
+int {ASSET_1}
+int {ASSET_2}
+<
+assert
+
+int 1
+int 10000
+<
+assert
+
+byte "CONFIG"
+int {ASSET_1}
+itob
+int {ASSET_2}
+itob
+concat
+int 1
+itob
+concat
+app_global_put
+
+byte "A"
+int 0
+app_global_put
+
+byte "B"
+int 0
+app_global_put
+
+byte "L"
+int 0
+app_global_put
+
+byte "LTID"
+int 0
+app_global_put
+
+int 1
+return
+
+label2:
+int 0
+return
+
+label1:
+txna Assets 2
+byte "LTID"
+app_global_get
+==
+b label47
+
+label9:
+store 1
+store 0
+load 0
+bnz label48
+
+itxn_begin
+int 1
+itxn_field TypeEnum
+txn Sender
+itxn_field Receiver
+load 1
+itxn_field Amount
+int 0
+itxn_field Fee
+itxn_submit
+b label49
+
+label48:
+itxn_begin
+int 4
+itxn_field TypeEnum
+txn Sender
+itxn_field AssetReceiver
+load 1
+itxn_field AssetAmount
+load 0
+itxn_field XferAsset
+int 0
+itxn_field Fee
+itxn_submit
+label49:
+retsub
+
+

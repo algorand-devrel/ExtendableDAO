@@ -1,0 +1,136 @@
+// We can hopefully create some sort of signature with a predefined start and
+// end of the program that all functions should conform to. Making sure we can
+// always deploy, invoke, and delete functionality.
+#pragma version 6
+
+// Deploy
+txn ApplicationID
+bz deploy
+
+// Only allower the creator to call
+txn Sender
+global CreatorAddress
+==
+assert
+
+method "invoke()bool"
+txna ApplicationArgs 0
+==
+bnz invoke
+
+method "deactivate()bool"
+txna ApplicationArgs 0
+==
+bnz deactivate
+
+err
+
+// Invoke
+// OptIn to an ASA
+invoke:
+	// Must contain an application ID
+	txn ApplicationID
+	assert
+
+	// Must be NoOp call
+	txn OnCompletion
+	int NoOp
+	==
+	assert
+
+	// OptIn to assets
+	itxn_begin
+
+	int 0
+	store 0
+	txn NumAssets
+	store 1
+	b add_asset
+	add_asset:
+	load 0
+	load 1
+	==
+	bnz no_more_assets
+
+	// Is this our first itxn, or the next in the group?
+	load 0
+	bz not_next
+	itxn_next
+	not_next:
+
+	int axfer
+	itxn_field TypeEnum
+
+	txn Sender
+	itxn_field Sender
+
+	txn Sender
+	itxn_field AssetReceiver
+
+	load 0
+	txnas Assets
+	itxn_field XferAsset
+
+	int 0
+	itxn_field AssetAmount
+
+	load 0
+	int 1
+	+
+	store 0
+	b add_asset
+	no_more_assets:
+
+	// itxn_submit
+
+	// // Rekey back
+	// itxn_begin
+	itxn_next
+
+	int pay
+	itxn_field TypeEnum
+
+	txn Sender
+	itxn_field Sender
+
+	txn Sender
+	itxn_field Receiver
+
+	txn Sender
+	itxn_field RekeyTo
+
+	itxn_submit
+
+	int 1
+	callsub log_bool
+
+	// Success
+	int 1
+	return
+
+deactivate:
+	// Log True
+	int 1
+	callsub log_bool
+
+	int 1
+	return
+
+deploy:
+	// Log True
+	int 1
+	callsub log_bool
+
+	int 1
+	return
+
+log_bool:
+	byte 0x151f7c75
+	byte 0x00
+	int 0
+	uncover 3
+	setbit
+	concat
+	log
+	retsub
+

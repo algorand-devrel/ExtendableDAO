@@ -42,10 +42,17 @@ def activate(app: abi.Application, *, output: abi.Uint64) -> Expr:
         Itob(app.application_id()),
         Bytes("_for"),
     )
+    proposal_against = Concat(
+        Bytes("proposal_"),
+        Itob(app.application_id()),
+        Bytes("_against"),
+    )
     return Seq(
         votes_for := App.globalGetEx(Global.current_application_id(), proposal_for),
+        votes_against := App.globalGetEx(Global.current_application_id(), proposal_against),
         Assert(votes_for.hasValue()),
-        Assert(votes_for.value() > Int(0)),
+        Assert(votes_against.hasValue()),
+        Assert(votes_for.value() > votes_against.value()),
         app_approval := AppParam.approvalProgram(app.application_id()),
         Assert(app_approval.hasValue()),
         app_clearstate := AppParam.clearStateProgram(app.application_id()),
@@ -125,6 +132,8 @@ def propose(appl: abi.ApplicationCallTransaction, *, output: abi.Uint64) -> Expr
         Assert(appl.get().type_enum() == TxnType.ApplicationCall),
         Assert(Not(appl.get().application_id())),
         Assert(appl.get().on_completion() == OnComplete.NoOp),
+        (new_app_pages := AppParam.extraProgramPages(appl.get().created_application_id())),
+        Assert(Not(new_app_pages.value())),
         Comment("TODO: Some sort of validation on proposed app"),
         (new_app_approval := AppParam.approvalProgram(appl.get().created_application_id())),
         Assert(Extract(new_app_approval.value(), Int(1), Int(4)) == Bytes("base16", "0x20020100")),

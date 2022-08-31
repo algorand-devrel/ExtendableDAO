@@ -26,7 +26,7 @@ APP_ID=$(${GOAL} app method \
 	--approval-prog dao_approval.teal \
 	--clear-prog dao_clearstate.teal \
 	--global-byteslices 0 --global-ints 5 \
-	--local-byteslices 0 --local-ints 0 \
+	--local-byteslices 0 --local-ints 8 \
 	--arg '"Test DAO"' \
 	| grep 'Created app with app index' \
 	| awk '{print $6}' \
@@ -234,14 +234,19 @@ PROP_APP_ID=$(${GOAL} app method \
 	| tr -d '\r')
 
 # Vote
+${GOAL} asset send \
+  --from ${VOTER} \
+  --to ${APP_ADDR} \
+  --assetid ${ASSET_ID} \
+  --amount 20 \
+  -o votes.txn
 ${GOAL} app method \
-	--method "vote(application,asset,uint64,bool)bool" \
+	--method "vote(application,axfer,bool)bool" \
 	--from ${VOTER} \
 	--app-id ${APP_ID} \
-	--on-completion "NoOp" \
+	--on-completion "OptIn" \
 	--arg ${PROP_APP_ID} \
-	--arg ${ASSET_ID} \
-        --arg 20 \
+        --arg votes.txn \
         --arg true
 
 # Activate
@@ -262,6 +267,16 @@ ${GOAL} app method \
 	--from ${ADDR} \
 	--app-id ${PROP_APP_ID} \
 	--on-completion "DeleteApplication"
+
+# Reclaim ASA
+${GOAL} app method \
+  --method "reclaim(application,asset)uint64" \
+  --from ${VOTER} \
+  --app-id ${APP_ID} \
+  --on-completion "NoOp" \
+  --arg ${PROP_APP_ID} \
+  --arg ${ASSET_ID} \
+  --fee 2000
 
 # Invoke
 ${GOAL} app method \
@@ -307,14 +322,19 @@ PROP_APP_ID=$(${GOAL} app method \
 	| tr -d '\r')
 
 # Vote
+${GOAL} asset send \
+  --from ${VOTER} \
+  --to ${APP_ADDR} \
+  --assetid ${ASSET_ID} \
+  --amount 20 \
+  -o votes.txn
 ${GOAL} app method \
-	--method "vote(application,asset,uint64,bool)bool" \
+	--method "vote(application,axfer,bool)bool" \
 	--from ${VOTER} \
 	--app-id ${APP_ID} \
 	--on-completion "NoOp" \
 	--arg ${PROP_APP_ID} \
-	--arg ${ASSET_ID} \
-	--arg 20 \
+        --arg votes.txn \
         --arg true
 
 # Activate
@@ -335,6 +355,16 @@ ${GOAL} app method \
 	--from ${ADDR} \
 	--app-id ${PROP_APP_ID} \
 	--on-completion "DeleteApplication"
+
+# Reclaim ASA
+${GOAL} app method \
+  --method "reclaim(application,asset)uint64" \
+  --from ${VOTER} \
+  --app-id ${APP_ID} \
+  --on-completion "NoOp" \
+  --arg ${PROP_APP_ID} \
+  --arg ${ASSET_ID} \
+  --fee 2000
 
 # Invoke Swap
 # 5 FUSDC for at least 4.8 FUSDT

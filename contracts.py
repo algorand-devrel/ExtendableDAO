@@ -85,9 +85,9 @@ def destroy(*, output: abi.Bool) -> Expr:
     return output.set(True)
 
 
-@router.method(no_op=CallConfig.CALL)
+@router.method(no_op=CallConfig.CALL,opt_in=CallConfig.CALL)
 def vote(
-    app: abi.Application, token: abi.Asset, votes: abi.Uint64, for_or_against: abi.Bool, *, output: abi.Bool
+    app: abi.Application, votes: abi.AssetTransferTransaction, for_or_against: abi.Bool, *, output: abi.Bool
 ) -> Expr:
     prop_for_bytes = Concat(
         Bytes("proposal_"),
@@ -99,20 +99,68 @@ def vote(
         Itob(app.application_id()),
         Bytes("_against"),
     )
+    asset_id = App.globalGet(Bytes("asset_id"))
     return Seq(
         (proposal_for := ScratchVar()).store(prop_for_bytes),
         (proposal_against := ScratchVar()).store(prop_against_bytes),
         (current_votes := App.globalGetEx(Int(0), proposal_for.load())),
         Assert(current_votes.hasValue()),
-        (voter_balance := AssetHolding.balance(Txn.sender(), token.asset_id())),
-        Assert(voter_balance.hasValue()),
-        Assert(voter_balance.value() >= votes.get()),
+        Assert(votes.get().asset_receiver() == Global.current_application_address()),
+        Assert(votes.get().xfer_asset() == asset_id),
         If(for_or_against.get(), Seq(
-            App.globalPut(proposal_for.load(), votes.get()),
+            App.localPut(Int(0), proposal_for.load(), App.localGet(Int(0), proposal_for.load()) + votes.get().asset_amount()),
+            App.globalPut(proposal_for.load(), App.globalGet(proposal_for.load()) + votes.get().asset_amount()),
         ), Seq(
-            App.globalPut(proposal_against.load(), votes.get())
+            App.localPut(Int(0), proposal_against.load(), App.localGet(Int(0), proposal_against.load()) + votes.get().asset_amount()),
+            App.globalPut(proposal_against.load(), App.globalGet(proposal_against.load()) + votes.get().asset_amount()),
         )),
-        output.set(True)
+        output.set(True),
+    )
+
+
+@router.method(no_op=CallConfig.CALL)
+def reclaim(app: abi.Application, asset: abi.Asset, *, output: abi.Uint64) -> Expr:
+    prop_for_bytes = Concat(
+        Bytes("proposal_"),
+        Itob(app.application_id()),
+        Bytes("_for"),
+    )
+    prop_against_bytes = Concat(
+        Bytes("proposal_"),
+        Itob(app.application_id()),
+        Bytes("_against"),
+    )
+    asset_id = App.globalGet(Bytes("asset_id"))
+    return Seq(
+        Assert(asset_id == asset.asset_id()),
+        (total := ScratchVar(TealType.uint64)).store(
+            App.localGet(Int(0), prop_for_bytes) + App.localGet(Int(0), prop_against_bytes)
+        ),
+        Assert(total.load()),
+        InnerTxnBuilder.Begin(),
+        InnerTxnBuilder.SetFields(
+            {
+                TxnField.type_enum: TxnType.AssetTransfer,
+                TxnField.asset_receiver: Txn.sender(),
+                TxnField.xfer_asset: asset_id,
+                TxnField.asset_amount: total.load(),
+            }
+        ),
+        InnerTxnBuilder.Submit(),
+        votes_for := App.globalGetEx(Global.current_application_id(), prop_for_bytes),
+        votes_against := App.globalGetEx(Global.current_application_id(), prop_against_bytes),
+        # Reduce global for
+        If(votes_for.hasValue()).Then(
+            App.globalPut(prop_for_bytes, App.globalGet(prop_for_bytes) - App.localGet(Int(0), prop_for_bytes)),
+        ),
+        # Reduce global against
+        If(votes_against.hasValue()).Then(
+            App.globalPut(prop_against_bytes, App.globalGet(prop_against_bytes) - App.localGet(Int(0), prop_against_bytes)),
+        ),
+        # Delete local amounts
+        App.localDel(Int(0), prop_for_bytes),
+        App.localDel(Int(0), prop_against_bytes),
+        output.set(total.load()),
     )
 
 

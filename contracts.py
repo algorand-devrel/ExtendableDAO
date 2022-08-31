@@ -251,3 +251,6 @@ if __name__ == "__main__":
     with open("dao_clearstate.teal", "w") as f:
         f.write(clearstate)
 
+    with open("dao_abi.json", "w") as f:
+        f.write(json.dumps(abi.dictify()))
+

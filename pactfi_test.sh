@@ -25,8 +25,8 @@ APP_ID=$(${GOAL} app method \
 	--from ${ADDR} \
 	--approval-prog dao_approval.teal \
 	--clear-prog dao_clearstate.teal \
-	--global-byteslices 0 --global-ints 5 \
-	--local-byteslices 0 --local-ints 8 \
+	--global-byteslices 0 --global-ints 64 \
+	--local-byteslices 0 --local-ints 16 \
 	--arg '"Test DAO"' \
 	| grep 'Created app with app index' \
 	| awk '{print $6}' \
@@ -222,7 +222,7 @@ ${GOAL} app method \
 	--local-byteslices 4 --local-ints 4 \
 	-o appl.txn
 
-# Propose Functionality 1
+# Propose OptIn Functionality
 PROP_APP_ID=$(${GOAL} app method \
 	--method "propose(appl)uint64" \
 	--from ${ADDR} \
@@ -248,6 +248,14 @@ ${GOAL} app method \
 	--arg ${PROP_APP_ID} \
         --arg votes.txn \
         --arg true
+
+# End Voting
+${GOAL} app method \
+  --method "end_voting(application)bool" \
+  --from ${ADDR} \
+  --app-id ${APP_ID} \
+  --on-completion "NoOp" \
+  --arg ${PROP_APP_ID}
 
 # Activate
 FUNC_APP_ID=$(${GOAL} app method \
@@ -336,6 +344,14 @@ ${GOAL} app method \
 	--arg ${PROP_APP_ID} \
         --arg votes.txn \
         --arg true
+
+# End Voting
+${GOAL} app method \
+  --method "end_voting(application)bool" \
+  --from ${ADDR} \
+  --app-id ${APP_ID} \
+  --on-completion "NoOp" \
+  --arg ${PROP_APP_ID}
 
 # Activate
 FUNC_APP_ID=$(${GOAL} app method \

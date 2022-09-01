@@ -16,7 +16,7 @@ ${SB} copyTo dao_approval.teal
 ${SB} copyTo dao_clearstate.teal
 
 # Delete local dao_approval.teal and dao_clearstate.teal
-rm dao_approval.teal dao_clearstate.teal
+rm dao_approval.teal dao_clearstate.teal dao_abi.json
 
 # Deploy
 APP_ID=$(${GOAL} app method \

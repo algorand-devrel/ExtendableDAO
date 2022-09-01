@@ -50,6 +50,8 @@ def activate(app: abi.Application, *, output: abi.Uint64) -> Expr:
     return Seq(
         votes_for := App.globalGetEx(Global.current_application_id(), proposal_for),
         votes_against := App.globalGetEx(Global.current_application_id(), proposal_against),
+        voting_allowed := App.globalGetEx(Int(0), Itob(app.application_id())),
+        Assert(Not(voting_allowed.hasValue())),
         Assert(votes_for.hasValue()),
         Assert(votes_against.hasValue()),
         Assert(votes_for.value() > votes_against.value()),
@@ -76,6 +78,8 @@ def activate(app: abi.Application, *, output: abi.Uint64) -> Expr:
             }
         ),
         InnerTxnBuilder.Submit(),
+        App.globalDel(proposal_for),
+        App.globalDel(proposal_against),
         output.set(InnerTxn.created_application_id()),
     )
 
@@ -103,8 +107,8 @@ def vote(
     return Seq(
         (proposal_for := ScratchVar()).store(prop_for_bytes),
         (proposal_against := ScratchVar()).store(prop_against_bytes),
-        (current_votes := App.globalGetEx(Int(0), proposal_for.load())),
-        Assert(current_votes.hasValue()),
+        voting_allowed := App.globalGetEx(Int(0), Itob(app.application_id())),
+        Assert(voting_allowed.hasValue()),
         Assert(votes.get().asset_receiver() == Global.current_application_address()),
         Assert(votes.get().xfer_asset() == asset_id),
         If(for_or_against.get(), Seq(
@@ -190,7 +194,21 @@ def propose(appl: abi.ApplicationCallTransaction, *, output: abi.Uint64) -> Expr
         Assert(new_app_clearstate.hasValue()),
         App.globalPut(proposal_for, Int(0)),
         App.globalPut(proposal_against, Int(0)),
+        App.globalPut(Itob(GeneratedID(appl.index())), Global.round()),
         output.set(appl.get().created_application_id()),
+    )
+
+
+@router.method(no_op=CallConfig.CALL)
+def end_voting(app: abi.Application, *, output: abi.Bool) -> Expr:
+    return Seq(
+        (app_params := AppParam.creator(app.application_id())),
+        Assert(Txn.sender() == app_params.value()),
+        voting_allowed := App.globalGetEx(Int(0), Itob(app.application_id())),
+        Assert(voting_allowed.hasValue()),
+        Assert(Global.round() > voting_allowed.value()),
+        App.globalDel(Itob(app.application_id())),
+        output.set(True),
     )
 
 

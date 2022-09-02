@@ -37,11 +37,11 @@ APP_ADDR=$(${GOAL} app info \
 	| awk '{print $3}' \
 	| tr -d '\r')
 
-# Create Asset
+# Create DAO Token Asset
 ASSET_ID=$(${GOAL} asset create \
 	--creator ${ADDR} \
-	--name "Test Asset" \
-	--unitname "TA" \
+	--name "DAO Token" \
+	--unitname "DT" \
 	--total 100 \
 	--decimals 0 \
 	| grep 'Created asset with asset index' \

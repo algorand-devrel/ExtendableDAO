@@ -85,7 +85,7 @@ def activate(app: abi.Application, *, output: abi.Uint64) -> Expr:
 
 
 @router.method(delete_application=CallConfig.CALL)
-def destroy(*, output: abi.Bool) -> Expr:
+def deactivate(*, output: abi.Bool) -> Expr:
     return output.set(True)
 
 

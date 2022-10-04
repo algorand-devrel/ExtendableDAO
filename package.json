@@ -1,0 +1,46 @@
+{
+  "name": "extendable_dao_ui",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Harsh Baid <harsh@harshbaid.com>",
+  "dependencies": {
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "@mui/icons-material": "^5.10.3",
+    "@mui/lab": "^5.0.0-alpha.99",
+    "@mui/material": "^5.10.5",
+    "@tanstack/react-query": "4.3.3",
+    "algosdk": "^1.20.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-error-overlay": "6.0.9",
+    "react-scripts": "4.0.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "overrides": {
+    "react-error-overlay": "6.0.9" 
+  }  
+}

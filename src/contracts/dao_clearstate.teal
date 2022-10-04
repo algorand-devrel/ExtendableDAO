@@ -1,0 +1,15 @@
+#pragma version 7
+txna ApplicationArgs 0
+method "clear_state()void"
+==
+bnz main_l2
+err
+main_l2:
+callsub clearstate_0
+int 1
+return
+
+// clear_state
+clearstate_0:
+int 1
+return

@@ -1,0 +1,862 @@
+#pragma version 7
+txna ApplicationArgs 0
+method "deploy(string)bool"
+==
+bnz main_l18
+txna ApplicationArgs 0
+method "initialise(asset)bool"
+==
+bnz main_l17
+txna ApplicationArgs 0
+method "activate(application)uint64"
+==
+bnz main_l16
+txna ApplicationArgs 0
+method "deactivate()bool"
+==
+bnz main_l15
+txna ApplicationArgs 0
+method "vote(application,axfer,bool)bool"
+==
+bnz main_l14
+txna ApplicationArgs 0
+method "reclaim(application,asset)uint64"
+==
+bnz main_l13
+txna ApplicationArgs 0
+method "propose(appl)uint64"
+==
+bnz main_l12
+txna ApplicationArgs 0
+method "end_voting(application)bool"
+==
+bnz main_l11
+txna ApplicationArgs 0
+method "invoke(application)bool"
+==
+bnz main_l10
+err
+main_l10:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+int 0
+getbyte
+callsub invoke_8
+store 59
+byte 0x151f7c75
+byte 0x00
+int 0
+load 59
+setbit
+concat
+log
+int 1
+return
+main_l11:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+int 0
+getbyte
+callsub endvoting_7
+store 53
+byte 0x151f7c75
+byte 0x00
+int 0
+load 53
+setbit
+concat
+log
+int 1
+return
+main_l12:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+txn GroupIndex
+int 1
+-
+store 46
+load 46
+gtxns TypeEnum
+int appl
+==
+assert
+load 46
+callsub propose_6
+store 47
+byte 0x151f7c75
+load 47
+itob
+concat
+log
+int 1
+return
+main_l13:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+int 0
+getbyte
+store 36
+txna ApplicationArgs 2
+int 0
+getbyte
+store 37
+load 36
+load 37
+callsub reclaim_5
+store 38
+byte 0x151f7c75
+load 38
+itob
+concat
+log
+int 1
+return
+main_l14:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+txn OnCompletion
+int OptIn
+==
+txn ApplicationID
+int 0
+!=
+&&
+||
+assert
+txna ApplicationArgs 1
+int 0
+getbyte
+store 25
+txna ApplicationArgs 2
+int 0
+int 8
+*
+getbit
+store 27
+txn GroupIndex
+int 1
+-
+store 26
+load 26
+gtxns TypeEnum
+int axfer
+==
+assert
+load 25
+load 26
+load 27
+callsub vote_4
+store 28
+byte 0x151f7c75
+byte 0x00
+int 0
+load 28
+setbit
+concat
+log
+int 1
+return
+main_l15:
+txn OnCompletion
+int DeleteApplication
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+callsub deactivate_3
+store 24
+byte 0x151f7c75
+byte 0x00
+int 0
+load 24
+setbit
+concat
+log
+int 1
+return
+main_l16:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+int 0
+getbyte
+callsub activate_2
+store 4
+byte 0x151f7c75
+load 4
+itob
+concat
+log
+int 1
+return
+main_l17:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+int 0
+getbyte
+callsub initialise_1
+store 2
+byte 0x151f7c75
+byte 0x00
+int 0
+load 2
+setbit
+concat
+log
+int 1
+return
+main_l18:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+==
+&&
+assert
+txna ApplicationArgs 1
+callsub deploy_0
+store 0
+byte 0x151f7c75
+byte 0x00
+int 0
+load 0
+setbit
+concat
+log
+int 1
+return
+
+// deploy
+deploy_0:
+store 1
+byte "uninitialised"
+int 1
+app_global_put
+int 1
+retsub
+
+// initialise
+initialise_1:
+store 3
+byte "uninitialised"
+app_global_get
+assert
+itxn_begin
+int axfer
+itxn_field TypeEnum
+global CurrentApplicationAddress
+itxn_field AssetReceiver
+load 3
+txnas Assets
+itxn_field XferAsset
+itxn_submit
+byte "asset_id"
+load 3
+txnas Assets
+app_global_put
+byte "uninitialised"
+app_global_del
+int 1
+retsub
+
+// activate
+activate_2:
+store 5
+global CurrentApplicationID
+byte "proposal_"
+load 5
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+app_global_get_ex
+store 7
+store 6
+global CurrentApplicationID
+byte "proposal_"
+load 5
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+app_global_get_ex
+store 9
+store 8
+int 0
+load 5
+txnas Applications
+itob
+app_global_get_ex
+store 11
+store 10
+load 11
+!
+assert
+load 7
+assert
+load 9
+assert
+load 6
+load 8
+>
+assert
+load 5
+txnas Applications
+app_params_get AppApprovalProgram
+store 13
+store 12
+load 13
+assert
+load 5
+txnas Applications
+app_params_get AppClearStateProgram
+store 15
+store 14
+load 15
+assert
+load 5
+txnas Applications
+app_params_get AppGlobalNumByteSlice
+store 17
+store 16
+load 5
+txnas Applications
+app_params_get AppGlobalNumUint
+store 19
+store 18
+load 5
+txnas Applications
+app_params_get AppLocalNumByteSlice
+store 21
+store 20
+load 5
+txnas Applications
+app_params_get AppLocalNumUint
+store 23
+store 22
+itxn_begin
+int appl
+itxn_field TypeEnum
+method "deploy()bool"
+itxn_field ApplicationArgs
+load 12
+itxn_field ApprovalProgram
+load 14
+itxn_field ClearStateProgram
+load 16
+itxn_field GlobalNumByteSlice
+load 18
+itxn_field GlobalNumUint
+load 20
+itxn_field LocalNumByteSlice
+load 22
+itxn_field LocalNumUint
+int 0
+itxn_field Fee
+itxn_submit
+byte "proposal_"
+load 5
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+app_global_del
+byte "proposal_"
+load 5
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+app_global_del
+itxn CreatedApplicationID
+retsub
+
+// deactivate
+deactivate_3:
+int 1
+retsub
+
+// vote
+vote_4:
+store 31
+store 30
+store 29
+byte "proposal_"
+load 29
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+store 32
+byte "proposal_"
+load 29
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+store 33
+int 0
+load 29
+txnas Applications
+itob
+app_global_get_ex
+store 35
+store 34
+load 35
+assert
+load 30
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+load 30
+gtxns XferAsset
+byte "asset_id"
+app_global_get
+==
+assert
+load 31
+bnz vote_4_l2
+int 0
+load 33
+int 0
+load 33
+app_local_get
+load 30
+gtxns AssetAmount
++
+app_local_put
+load 33
+load 33
+app_global_get
+load 30
+gtxns AssetAmount
++
+app_global_put
+b vote_4_l3
+vote_4_l2:
+int 0
+load 32
+int 0
+load 32
+app_local_get
+load 30
+gtxns AssetAmount
++
+app_local_put
+load 32
+load 32
+app_global_get
+load 30
+gtxns AssetAmount
++
+app_global_put
+vote_4_l3:
+int 1
+retsub
+
+// reclaim
+reclaim_5:
+store 40
+store 39
+byte "asset_id"
+app_global_get
+load 40
+txnas Assets
+==
+assert
+int 0
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+app_local_get
+int 0
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+app_local_get
++
+store 41
+load 41
+assert
+itxn_begin
+int axfer
+itxn_field TypeEnum
+txn Sender
+itxn_field AssetReceiver
+byte "asset_id"
+app_global_get
+itxn_field XferAsset
+load 41
+itxn_field AssetAmount
+itxn_submit
+global CurrentApplicationID
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+app_global_get_ex
+store 43
+store 42
+global CurrentApplicationID
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+app_global_get_ex
+store 45
+store 44
+load 43
+bnz reclaim_5_l3
+reclaim_5_l1:
+load 45
+bz reclaim_5_l4
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+app_global_get
+int 0
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+app_local_get
+-
+app_global_put
+b reclaim_5_l4
+reclaim_5_l3:
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+app_global_get
+int 0
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+app_local_get
+-
+app_global_put
+b reclaim_5_l1
+reclaim_5_l4:
+int 0
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_for"
+concat
+app_local_del
+int 0
+byte "proposal_"
+load 39
+txnas Applications
+itob
+concat
+byte "_against"
+concat
+app_local_del
+load 41
+retsub
+
+// propose
+propose_6:
+store 48
+load 48
+gtxns TypeEnum
+int appl
+==
+assert
+load 48
+gtxns ApplicationID
+!
+assert
+load 48
+gtxns OnCompletion
+int NoOp
+==
+assert
+load 48
+gtxns CreatedApplicationID
+app_params_get AppExtraProgramPages
+store 49
+!
+assert
+// TODO: Some sort of validation on proposed app
+load 48
+gtxns CreatedApplicationID
+app_params_get AppApprovalProgram
+store 50
+extract 1 4
+byte 0x20020100
+==
+assert
+// TODO: Some sort of validation on proposed app
+load 48
+gtxns CreatedApplicationID
+app_params_get AppClearStateProgram
+store 52
+store 51
+load 52
+assert
+byte "proposal_"
+load 48
+gtxns CreatedApplicationID
+itob
+concat
+byte "_for"
+concat
+int 0
+app_global_put
+byte "proposal_"
+load 48
+gtxns CreatedApplicationID
+itob
+concat
+byte "_against"
+concat
+int 0
+app_global_put
+load 48
+gaids
+itob
+global Round
+app_global_put
+load 48
+gtxns CreatedApplicationID
+retsub
+
+// end_voting
+endvoting_7:
+store 54
+load 54
+txnas Applications
+app_params_get AppCreator
+store 56
+store 55
+txn Sender
+load 55
+==
+assert
+int 0
+load 54
+txnas Applications
+itob
+app_global_get_ex
+store 58
+store 57
+load 58
+assert
+global Round
+load 57
+>
+assert
+load 54
+txnas Applications
+itob
+app_global_del
+int 1
+retsub
+
+// invoke
+invoke_8:
+store 60
+load 60
+txnas Applications
+app_params_get AppCreator
+store 63
+store 62
+load 60
+txnas Applications
+app_params_get AppAddress
+store 65
+store 64
+load 62
+global CurrentApplicationAddress
+==
+assert
+itxn_begin
+int appl
+itxn_field TypeEnum
+load 60
+txnas Applications
+itxn_field ApplicationID
+method "invoke()bool"
+itxn_field ApplicationArgs
+load 64
+itxn_field RekeyTo
+// Add all assets
+int 0
+store 61
+invoke_8_l1:
+load 61
+txn NumAssets
+<
+bnz invoke_8_l11
+// Add all apps
+int 2
+store 61
+invoke_8_l3:
+load 61
+txn NumApplications
+<=
+bnz invoke_8_l10
+// Add all accounts
+int 1
+store 61
+invoke_8_l5:
+load 61
+txn NumAccounts
+<
+bnz invoke_8_l9
+// Add all args
+int 2
+store 61
+invoke_8_l7:
+load 61
+txn NumAppArgs
+<
+bz invoke_8_l12
+load 61
+txnas ApplicationArgs
+itxn_field ApplicationArgs
+load 61
+int 1
++
+store 61
+b invoke_8_l7
+invoke_8_l9:
+load 61
+txnas Accounts
+itxn_field Accounts
+load 61
+int 1
++
+store 61
+b invoke_8_l5
+invoke_8_l10:
+load 61
+txnas Applications
+itxn_field Applications
+load 61
+int 1
++
+store 61
+b invoke_8_l3
+invoke_8_l11:
+load 61
+txnas Assets
+itxn_field Assets
+load 61
+int 1
++
+store 61
+b invoke_8_l1
+invoke_8_l12:
+itxn_submit
+// Check we've been rekeyed back to our own account
+global CurrentApplicationAddress
+acct_params_get AcctAuthAddr
+store 66
+global ZeroAddress
+==
+assert
+int 1
+retsub
